@@ -1,0 +1,182 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Charlie's Live Timetable</title>
+  <style>
+    :root {
+      --main-green: #4CAF50;
+      --dark-bg: #1b1f1c;
+      --light-text: #e8f5e9;
+      --secondary-text: #9e9e9e;
+    }
+
+    body {
+      background-color: var(--dark-bg);
+      color: var(--light-text);
+      font-family: "JetBrains Mono", Consolas, monospace;
+      display: flex;
+      flex-direction: column;
+      align-items: center;
+      justify-content: center;
+      height: 100vh;
+      margin: 0;
+    }
+
+    h1 {
+      color: var(--main-green);
+      text-transform: uppercase;
+      font-weight: 600;
+      letter-spacing: 2px;
+      margin-bottom: 10px;
+    }
+
+    .clock {
+      font-size: 1.2em;
+      color: var(--secondary-text);
+      margin-bottom: 20px;
+    }
+
+    .card {
+      background: #222723;
+      padding: 30px 50px;
+      border-radius: 20px;
+      box-shadow: 0 0 20px rgba(76, 175, 80, 0.2);
+      text-align: center;
+      transition: all 0.3s ease-in-out;
+    }
+
+    .subject {
+      font-size: 2em;
+      color: var(--main-green);
+      margin: 10px 0;
+    }
+
+    .next {
+      font-size: 1.2em;
+      color: var(--secondary-text);
+      margin-bottom: 10px;
+    }
+
+    .time-remaining {
+      font-size: 1em;
+      color: var(--secondary-text);
+      margin-top: 5px;
+    }
+
+    footer {
+      position: absolute;
+      bottom: 15px;
+      font-size: 0.9em;
+      color: var(--secondary-text);
+    }
+  </style>
+</head>
+<body>
+  <h1>Charlie's Live Timetable</h1>
+  <div class="clock" id="clock">--:--</div>
+  <div class="card">
+    <div class="subject" id="current">Loading...</div>
+    <div class="next" id="next"></div>
+    <div class="time-remaining" id="remaining"></div>
+  </div>
+
+  <footer>System: Academic Week Monitor v1.0</footer>
+
+  <script>
+    const timetable = {
+      Monday: [
+        { start: "09:00", end: "09:45", subject: "Computer Science" },
+        { start: "09:45", end: "10:30", subject: "English Literature" },
+        { start: "10:45", end: "11:30", subject: "Physics" },
+        { start: "11:30", end: "12:15", subject: "Maths" },
+        { start: "13:00", end: "13:45", subject: "Biology" },
+        { start: "14:30", end: "14:45", subject: "Chemistry" },
+      ],
+      Tuesday: [
+        { start: "09:00", end: "09:45", subject: "Computer Science" },
+        { start: "09:45", end: "10:30", subject: "English Language" },
+        { start: "10:45", end: "11:30", subject: "Chemistry" },
+        { start: "11:30", end: "12:15", subject: "Maths" },
+        { start: "13:00", end: "13:45", subject: "Physics" },
+        { start: "14:30", end: "14:45", subject: "English Language" },
+      ],
+      Wednesday: [
+        { start: "09:00", end: "09:45", subject: "Computer Science" },
+        { start: "09:45", end: "10:30", subject: "English Literature" },
+        { start: "10:45", end: "11:30", subject: "Chemistry" },
+        { start: "11:30", end: "12:15", subject: "Maths" },
+        { start: "13:00", end: "13:45", subject: "Biology" },
+        { start: "14:30", end: "14:45", subject: "Computer Science" },
+      ],
+      Thursday: [
+        { start: "09:00", end: "09:45", subject: "Computer Science" },
+        { start: "09:45", end: "10:30", subject: "English Language" },
+        { start: "10:45", end: "11:30", subject: "Chemistry" },
+        { start: "11:30", end: "12:15", subject: "Maths" },
+        { start: "13:00", end: "13:45", subject: "Physics" },
+        { start: "14:30", end: "14:45", subject: "English Literature" },
+      ],
+      Friday: [
+        { start: "09:00", end: "09:45", subject: "Computer Science" },
+        { start: "09:45", end: "10:30", subject: "English Literature" },
+        { start: "10:45", end: "11:30", subject: "Physics" },
+        { start: "11:30", end: "12:15", subject: "Maths" },
+        { start: "13:00", end: "13:45", subject: "Biology" },
+        { start: "14:30", end: "14:45", subject: "Chemistry" },
+      ]
+    };
+
+    function updateClock() {
+      const now = new Date();
+      const timeStr = now.toTimeString().slice(0, 5);
+      document.getElementById("clock").textContent = timeStr;
+    }
+
+    function getCurrentLesson() {
+      const now = new Date();
+      const day = now.toLocaleString("en-GB", { weekday: "long" });
+      const time = now.toTimeString().slice(0, 5);
+
+      const lessons = timetable[day] || [];
+      let current = "No lessons right now.";
+      let next = "Day complete!";
+      let remaining = "";
+
+      for (let i = 0; i < lessons.length; i++) {
+        const { start, end, subject } = lessons[i];
+        if (time >= start && time < end) {
+          current = subject;
+          next = lessons[i + 1] ? lessons[i + 1].subject : "Wrap Up / End of Day";
+
+          // Calculate remaining time
+          const [h, m] = end.split(":").map(Number);
+          const endTime = new Date(now);
+          endTime.setHours(h, m, 0, 0);
+          const diff = Math.floor((endTime - now) / 60000);
+          remaining = `${diff} min left in this lesson`;
+          break;
+        }
+        if (time < start) {
+          current = "Break or Free Period";
+          next = subject;
+          break;
+        }
+      }
+
+      document.getElementById("current").textContent = current;
+      document.getElementById("next").textContent = "Next: " + next;
+      document.getElementById("remaining").textContent = remaining;
+    }
+
+    function update() {
+      updateClock();
+      getCurrentLesson();
+    }
+
+    update();
+    setInterval(update, 30000); // update every 30s
+  </script>
+</body>
+</html>
