@@ -136,7 +136,7 @@
 
     function getCurrentLesson() {
       const now = new Date();
-      const day = now.toLocaleString("en-GB", { weekday: "long" });
+      const day = now.toLocaleString("en-GB", { weekday: "long", timeZone: "Europe/London" });
       const time = now.toTimeString().slice(0, 5);
 
       const lessons = timetable[day] || [];
